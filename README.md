@@ -32,7 +32,7 @@ options:
 The file [example.pdf](./example.pdf) was generated with the following command
 
 ```shell
-python3 mtg_tag_gen.py -e token -o example.pdf
+python mtg_tag_gen.py -o teexamplest.pdf 
 ```
 
 ## TODO

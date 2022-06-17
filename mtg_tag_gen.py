@@ -21,7 +21,7 @@ REPLACERS = [
     {'key': 'Art Series',
      'value': 'Art'},
     {"key": "Substitute",
-     "value": "Subx"},
+     "value": "Sub"},
     {"key": "Display",
      "value": "Disp."},
     {"key": "Commander",
@@ -46,6 +46,14 @@ REPLACERS = [
      "value": "S."},
     {"key": "Promos", # Duels of the Planeswalkers 2015 Promos
      "value": "Pro"},
+    {"key": "Sub Cards", # Innistrad: Midnight Hunt Sub Cards
+     "value": "Subs"},
+    {"key": "Playtest", # Mystery Booster Playtest Cards 2021
+     "value": "Test"},
+    {"key": "20", # Duels of the Planeswalkers 2015 Pro
+     "value": ""},
+    {"key": "Pure", # D.D.: Mirrodin Pure v. New Phyrexia
+     "value": ""},
 ]
 
 # List of set_type values from Scryfall
@@ -61,6 +69,7 @@ parser.add_argument('-e', '--exclude-type', action="append", help="Do not genera
 parser.add_argument('-t', '--type', action="append", help="ONLY generate labels for these types (see https://scryfall.com/docs/api/sets)")
 parser.add_argument('-j', '--just', action="append", help="Generate labels for JUST the sets passed (eg m21)")
 parser.add_argument('-o', '--outfile', help="Output filename")
+parser.add_argument('--children', action="store_true", help="Generate labels for sub sets (tokens, promos, ect)")
 # Tuning args
 parser.add_argument("--height", default=(3/8) * inch, type=int, help="How tall to make the tags")
 parser.add_argument("--width", default=(2 + (5/8)) * inch, type=int, help="How wide to make the tags")
@@ -74,6 +83,8 @@ args = parser.parse_args()
 MAX_ROWS = 24
 MAX_COLS = 3
 TARGET_HEIGHT = args.height - 12.6
+SPACE_X = .3*inch
+SPACE_Y = .2*inch
 
 # Use a session in case ScryFall ever decides they want auth
 s = requests.Session()
@@ -93,7 +104,7 @@ c.setAuthor("TheToddLuci0")
 col = 0
 row = 0
 
-c.translate(.5*inch, .25*inch)
+c.translate(SPACE_X, SPACE_Y)
 c.saveState()
 
 for i in sets['data']:
@@ -105,6 +116,11 @@ for i in sets['data']:
         if args.verbose:
             print("Skipping '{}', type '{}'".format(i['name'], i['set_type']))
         continue
+    if not args.children:
+        if 'parent_set_code' in i.keys() and (not args.just or i['code'] not in args.just):
+            if args.verbose:
+                print("Skipping child set '{}', parent code '{}'".format(i['name'], i['parent_set_code']))
+            continue
     if args.verbose:
         print(i['name'])
     # Get the image
@@ -119,7 +135,7 @@ for i in sets['data']:
         # We're too long!
         try:
             n = n.replace(REPLACERS[replacer]['key'],
-                          REPLACERS[replacer]['value'])
+                          REPLACERS[replacer]['value']).strip()
             replacer += 1
         except Exception as e:
             print("No replacers fix '{}'! Please add one!".format(n))
@@ -139,7 +155,7 @@ for i in sets['data']:
             print("------------------------------------------\n\Making a new page!\n------------------------------------------")
         c.restoreState()
         c.showPage()
-        c.translate(.5*inch, .25*inch)
+        c.translate(SPACE_X, SPACE_Y)
         c.saveState()
         col = 0
         row = 0
