@@ -11,7 +11,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["-v", "-e", "token"]
+            "args": ["-v", "-e", "token", "-o", "test.pdf"]
         }
     ]
 }

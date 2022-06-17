@@ -36,6 +36,16 @@ REPLACERS = [
      "value": "Ant."},
     {"key": "Duel Decks",
      "value": "D.D."},
+    {"key": "Cmndr Lgnds",
+     "value": "C.L."},
+    {"key": "Minigames",
+     "value": "mGames"},
+    {"key": "Foils", # Mystery Booster Retail Edition Foils
+     "value": "Foil"},
+    {"key": "Series", # Glbl Series Jiang Yanggu & Mu Yanling
+     "value": "S."},
+    {"key": "Promos", # Duels of the Planeswalkers 2015 Promos
+     "value": "Pro"},
 ]
 
 # List of set_type values from Scryfall
@@ -47,26 +57,37 @@ SET_TYPES = ["core", "expansion", "masters", "alchemy", "arsenal", "from_the_vau
 
 parser = argparse.ArgumentParser(description='Generate MTG card divider labels')
 parser.add_argument('-v', '--verbose', action="store_true")
-parser.add_argument('-e', '--exclude-type', action="append", help="Do not generate labels for the given type")
-parser.add_argument('-t', '--type', default=[], action="append", help="ONLY generate labels for these types")
+parser.add_argument('-e', '--exclude-type', action="append", help="Do not generate labels for the given type (see https://scryfall.com/docs/api/sets)")
+parser.add_argument('-t', '--type', action="append", help="ONLY generate labels for these types (see https://scryfall.com/docs/api/sets)")
+parser.add_argument('-j', '--just', action="append", help="Generate labels for JUST the sets passed (eg m21)")
+parser.add_argument('-o', '--outfile', help="Output filename")
 # Tuning args
 parser.add_argument("--height", default=(3/8) * inch, type=int, help="How tall to make the tags")
 parser.add_argument("--width", default=(2 + (5/8)) * inch, type=int, help="How wide to make the tags")
-parser.add_argument("--image-offset", default=5, type=int, help="Spacing between text and icon")
-parser.add_argument("--font-size", default=8.5, type=float, help="How big to make the letters")
-parser.add_argument("--max-chars", default=39, type=int, help="Maximum length of the string that will fit on the labels")
+parser.add_argument("--image-offset", default=5, type=float, help="Spacing between text and icon")
+parser.add_argument("--font-size", default=11, type=float, help="How big to make the letters")
+parser.add_argument("--max-chars", default=35, type=int, help="Maximum length of the string that will fit on the labels")
 parser.add_argument("--font", default="Times-Roman")
 args = parser.parse_args()
 # Constants for BCW traiding card dividers
 # TODO Dynamically calculate max rows/cols based on args (ie page size / width + padding?)
 MAX_ROWS = 24
 MAX_COLS = 3
-TARGET_HEIGHT = args.height - 5
+TARGET_HEIGHT = args.height - 12.6
 
 # Use a session in case ScryFall ever decides they want auth
 s = requests.Session()
-sets = s.get('https://api.scryfall.com/sets').json()
-c = canvas.Canvas("mtg-labesl.pdf", pagesize=A4)
+if not args.just:
+    sets = s.get('https://api.scryfall.com/sets').json()
+else:
+    sets = {"data":[]}
+    for k in args.just:
+        r = s.get('https://api.scryfall.com/sets/{}'.format(k))
+        if r.status_code != 200:
+            print("Invalid set name: {}".format(k))
+            sys.exit(13)
+        sets['data'].append(r.json())
+c = canvas.Canvas(args.outfile, pagesize=A4)
 c.setAuthor("TheToddLuci0")
 
 col = 0
@@ -86,10 +107,13 @@ for i in sets['data']:
         continue
     if args.verbose:
         print(i['name'])
+    # Get the image
+    r = s.get(i['icon_svg_uri'])
+    image = svg2rlg(BytesIO(r.content))
     # Figure out the text
-    to = c.beginText()
+    to = c.beginText(y=(TARGET_HEIGHT - args.font_size) /2 )
     to.setFont(args.font, args.font_size)
-    n = i["name"]
+    n = i["name"].strip()
     replacer = 0
     while len(n) > args.max_chars:
         # We're too long!
@@ -99,7 +123,7 @@ for i in sets['data']:
             replacer += 1
         except Exception as e:
             print("No replacers fix '{}'! Please add one!".format(n))
-            print("Max length:\t{}".format(args.max-chars))
+            print("Max length:\t{}".format(args.max_chars))
             print("Actual length:\t{}".format(len(n)))
             c.save()
             sys.exit(99)
@@ -107,8 +131,6 @@ for i in sets['data']:
     to.textOut(n)
     c.drawText(to)
     # Put the icon in
-    r = s.get(i['icon_svg_uri'])
-    image = svg2rlg(BytesIO(r.content))
     image.renderScale = (TARGET_HEIGHT / image.height)
     renderPDF.draw(image, c, to.getX() + args.image_offset, 0)
     # Move to the next location
