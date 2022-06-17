@@ -1,10 +1,10 @@
 # Generate labels for your MTG card dividers
 
-Targets the #TODO dividers I use. Should be adjustable to your needs
+Targets the [BCW dividers](https://www.amazon.com/BCW-Brand-Trading-Divider-Cards/dp/B09JWZTTYD/) I use. Should be adjustable to your needs
 
-Uses the SkryFall API
+Uses the [SkryFall API](https://scryfall.com/docs/api)
 
 ## TODO
-Params
-CI/CD
-Probably a half dozen other things
+- [x] Params
+- [ ] CI/CD
+- [ ] Probably a half dozen other things
