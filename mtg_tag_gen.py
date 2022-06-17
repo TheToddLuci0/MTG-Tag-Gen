@@ -44,7 +44,6 @@ HEIGHT = (3/8) * inch
 WIDTH = (2 + (5/8)) * inch
 MAX_ROWS = 24
 MAX_COLS = 3
-# RENDER_SCALE = .01
 TARGET_HEIGHT = .2 * inch
 VERBOSE = True
 IMAGE_OFFSET = 5
