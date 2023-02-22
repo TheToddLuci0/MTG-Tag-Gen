@@ -54,6 +54,8 @@ REPLACERS = [
      "value": ""},
     {"key": "Pure", # D.D.: Mirrodin Pure v. New Phyrexia
      "value": ""},
+    {"key": "Lord of the Rings",
+     "value": "LotR"},
 ]
 
 # List of set_type values from Scryfall
