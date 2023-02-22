@@ -36,7 +36,7 @@ options:
 The file [example.pdf](./example.pdf) was generated with the following command
 
 ```shell
-python mtg_tag_gen.py -o teexamplest.pdf 
+python mtg_tag_gen.py -o example.pdf 
 ```
 
 ## TODO
